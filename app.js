@@ -1,14 +1,45 @@
 const express = require('express');
-const path=require('path');
+const mongoose = require('mongoose');
+const Photo = require('./models/Photo')
+const path = require('path');
+const ejs = require('ejs');
 
 const app = express();
-app.use(express.static('public'))
+
+// connect DB
+mongoose.connect('mongodb://localhost/pcat-test-db');
+
+// MIDDLEWARES
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 
+// TEMPLATE ENGİNE
+app.set('view engine', 'ejs');
 
-app.get('/', (req,res) => {
-    res.sendFile(path.resolve(__dirname,'temp/index.html'));
+
+// ROUTE
+
+app.get('/', async (req, res) => {
+    const photos= await Photo.find({})
+    res.render('index',{
+        photos,
+    });
 });
+
+app.get('/about', (req, res) => {
+    res.render('about');
+});
+
+app.get('/add', (req, res) => {
+    res.render('add');
+});
+
+app.post('/photos', async(req, res) => {
+    await Photo.create(req.body)
+    res.redirect('/')
+})
 
 
 const port = 3000;
